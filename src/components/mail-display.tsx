@@ -13,9 +13,11 @@ import {
   Upload
 } from 'lucide-react';
 
+import { generateOTP, validateOTPToken } from '@/app/lib/actions';
 import { Mail } from '@/data';
 import { addDays, addHours, format, nextSaturday } from 'date-fns';
 import Image from 'next/image';
+import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import { Calendar } from './ui/calendar';
@@ -46,6 +48,15 @@ interface MailDisplayProps {
 
 export function MailDisplay({ mail }: MailDisplayProps) {
   const today = new Date();
+  const [currentState, setCurrentState] = useState('');
+  const [phone, setPhone] = useState('');
+  const [OTP, setOTP] = useState('');
+  const getOTP = generateOTP.bind((response: any) => {
+    if (response?.data) {
+      setCurrentState('OTPSent');
+    }
+  }, phone);
+  const submitOTP = validateOTPToken.bind(null, phone, OTP);
 
   const regisFn = (id: string) => {
     switch (id) {
@@ -60,31 +71,46 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                   please enter your phone number.
                 </CardDescription>
               </CardHeader>
-              <CardContent className='grid gap-4'>
-                <div className='grid gap-2'>
-                  <Label htmlFor='phone'>Phone</Label>
-                  <Input
-                    id='phone'
-                    type='tel'
-                    placeholder='9000400804'
-                    autoFocus
-                  />
-                </div>
-                <div className='grid gap-2'>
-                  <Label htmlFor='otp'>OTP</Label>
-                  <InputOTP id='otp' maxLength={6}>
-                    <InputOTPGroup>
-                      <InputOTPSlot index={0} />
-                      <InputOTPSlot index={1} />
-                      <InputOTPSlot index={2} />
-                      <InputOTPSlot index={3} />
-                    </InputOTPGroup>
-                  </InputOTP>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button className='w-full'>Create account</Button>
-              </CardFooter>
+              <form action={currentState == 'OTPSent' ? submitOTP : getOTP}>
+                <CardContent className='grid gap-4'>
+                  <div className='grid gap-2'>
+                    <Label htmlFor='phone'>Phone</Label>
+                    <Input
+                      id='phone'
+                      type='tel'
+                      placeholder='9000400804'
+                      autoFocus
+                      value={phone}
+                      maxLength={10}
+                      minLength={10}
+                      onChange={(e: any) => {
+                        setPhone(e?.target?.value);
+                      }}
+                    />
+                  </div>
+                  <div className='grid gap-2'>
+                    <Label htmlFor='otp'>OTP</Label>
+                    <InputOTP
+                      id='otp'
+                      maxLength={4}
+                      value={OTP}
+                      onChange={e => {
+                        setOTP(e);
+                      }}
+                    >
+                      <InputOTPGroup>
+                        <InputOTPSlot index={0} />
+                        <InputOTPSlot index={1} />
+                        <InputOTPSlot index={2} />
+                        <InputOTPSlot index={3} />
+                      </InputOTPGroup>
+                    </InputOTP>
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button className='w-full'>Request OTP</Button>
+                </CardFooter>
+              </form>
             </Card>
             <Card className='overflow-hidden'>
               <CardHeader>
