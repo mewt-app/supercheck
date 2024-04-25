@@ -13,11 +13,13 @@ import {
   Upload
 } from 'lucide-react';
 
-import { generateOTP, validateOTPToken } from '@/app/lib/actions';
+import Cookies from 'js-cookie';
+import { generateOTP, validateOTPToken,getMerchantId } from '@/app/lib/actions';
 import { Mail } from '@/data';
 import { addDays, addHours, format, nextSaturday } from 'date-fns';
 import Image from 'next/image';
 import { useState } from 'react';
+import CheckCircleIcon from '@heroicons/react/24/solid/CheckCircleIcon';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import { Calendar } from './ui/calendar';
@@ -49,14 +51,38 @@ interface MailDisplayProps {
 export function MailDisplay({ mail }: MailDisplayProps) {
   const today = new Date();
   const [currentState, setCurrentState] = useState('');
+  const [otpVerified, setOtpVerified] = useState(false);
   const [phone, setPhone] = useState('');
   const [OTP, setOTP] = useState('');
-  const getOTP = generateOTP.bind((response: any) => {
-    if (response?.data) {
-      setCurrentState('OTPSent');
+
+  const getOTP = async () => {
+    try {
+      const response = await generateOTP(phone);
+      if (response?.data) {
+        setCurrentState('OTPSent');
+      }
+    } catch (error) {
+      console.error('Error generating OTP:', error);
     }
-  }, phone);
-  const submitOTP = validateOTPToken.bind(null, phone, OTP);
+  };
+
+  const submitOTP = async () => {
+    try {
+      const sessionId = await validateOTPToken(phone, OTP);
+      if (sessionId) {
+        setCurrentState('OTPVerified');
+        const merchantId = await getMerchantId(phone, sessionId);
+        if (merchantId) {
+          Cookies.set('merchantId', merchantId); // Store merchantId in a cookie
+          setOtpVerified(true);
+        } else {
+          console.error('Failed to retrieve merchant ID');
+        }
+      }
+    } catch (error) {
+      console.error('Error validating OTP:', error);
+    }
+  };
 
   const regisFn = (id: string) => {
     switch (id) {
@@ -106,9 +132,19 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                       </InputOTPGroup>
                     </InputOTP>
                   </div>
+                  {otpVerified && (
+                    <div className='flex items-center justify-center'>
+                      <CheckCircleIcon className='h-5 w-5 text-green-500' />
+                      <span className='ml-2 text-green-500'>Verified</span>
+                    </div>
+                  )}
                 </CardContent>
                 <CardFooter>
-                  <Button className='w-full'>Request OTP</Button>
+                    {!otpVerified && (
+                        <Button onClick={currentState === 'OTPSent' ? submitOTP : getOTP}>
+                            {currentState === 'OTPSent' ? 'Verify OTP' : 'Request OTP'}
+                        </Button>
+                    )}
                 </CardFooter>
               </form>
             </Card>
