@@ -10,24 +10,24 @@ export const mails = [
     labels: ['#1', 'onboarding', 'important']
   },
   {
-    id: '6c84fb90-12c4-11e1-840d-7b25ce775a',
+    id: 'second-integration',
     name: '#2 : Integrate with store',
     email: 'onboarding@superpe.in',
     subject: 'Integrate with your shopify right away',
     text: "Hi, let's have a meeting tomorrow to discuss the project. I've been reviewing the project details and have some ideas I'd like to share. It's crucial that we align on our next steps to ensure the project's success.\n\nPlease come prepared with any questions or insights you may have. Looking forward to our meeting!\n\nBest regards, William",
     date: '2024-04-20T09:00:00',
     read: false,
-    labels: ['#2', 'onboarding', 'important']
+    labels: ['#2', 'integration', 'important']
   },
   {
-    id: '6c84fb90-12c4-11e1-840d-7c5ee775a',
+    id: 'third-golive',
     name: '#3 : All set for payments',
     email: 'onboarding@superpe.in',
     subject: "That's it! Let's accept your first payment",
     text: "Hi, let's have a meeting tomorrow to discuss the project. I've been reviewing the project details and have some ideas I'd like to share. It's crucial that we align on our next steps to ensure the project's success.\n\nPlease come prepared with any questions or insights you may have. Looking forward to our meeting!\n\nBest regards, William",
     date: '2024-04-20T09:00:00',
     read: false,
-    labels: ['#3', 'onboarding', 'important']
+    labels: ['#3', 'go live', 'important']
   },
   {
     id: '3e7c3f6d-bdf5-46ae-8d90-171300f27ae2',

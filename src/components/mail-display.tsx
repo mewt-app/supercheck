@@ -1,30 +1,43 @@
 import {
   Archive,
   ArchiveX,
+  CircleIcon,
   Clock,
+  CopyIcon,
   Forward,
   MoreVertical,
   Reply,
   ReplyAll,
-  Trash2
+  StarIcon,
+  Trash2,
+  Upload
 } from 'lucide-react';
 
 import { Mail } from '@/data';
 import { addDays, addHours, format, nextSaturday } from 'date-fns';
+import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import { Calendar } from './ui/calendar';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
+} from './ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger
 } from './ui/dropdown-menu';
+import { Input } from './ui/input';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from './ui/input-otp';
 import { Label } from './ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Separator } from './ui/separator';
-import { Switch } from './ui/switch';
-import { Textarea } from './ui/textarea';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 interface MailDisplayProps {
@@ -33,6 +46,189 @@ interface MailDisplayProps {
 
 export function MailDisplay({ mail }: MailDisplayProps) {
   const today = new Date();
+
+  const regisFn = (id: string) => {
+    switch (id) {
+      case 'first-onboarding':
+        return (
+          <div className='grid grid-cols-2 overflow-y-scroll'>
+            <Card className='max-w-sm'>
+              <CardHeader className='space-y-1'>
+                <CardTitle className='text-2xl'>Create an account</CardTitle>
+                <CardDescription>
+                  To get started with onboarding on SuperPe seller network,
+                  please enter your phone number.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className='grid gap-4'>
+                <div className='grid gap-2'>
+                  <Label htmlFor='phone'>Phone</Label>
+                  <Input
+                    id='phone'
+                    type='tel'
+                    placeholder='9000400804'
+                    autoFocus
+                  />
+                </div>
+                <div className='grid gap-2'>
+                  <Label htmlFor='otp'>OTP</Label>
+                  <InputOTP id='otp' maxLength={6}>
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button className='w-full'>Create account</Button>
+              </CardFooter>
+            </Card>
+            <Card className='overflow-hidden'>
+              <CardHeader>
+                <CardTitle>Brand Assets</CardTitle>
+                <CardDescription>
+                  Please upload your brand cover image for the checkout
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className='grid gap-2'>
+                  <Image
+                    alt='Product image'
+                    className='aspect-square w-full rounded-md object-cover'
+                    height='300'
+                    src='/placeholder.svg'
+                    width='300'
+                  />
+                  <div className='grid grid-cols-3 gap-2'>
+                    <button>
+                      <Image
+                        alt='Product image'
+                        className='aspect-square w-full rounded-md object-cover'
+                        height='84'
+                        src='/placeholder.svg'
+                        width='84'
+                      />
+                    </button>
+                    <button>
+                      <Image
+                        alt='Product image'
+                        className='aspect-square w-full rounded-md object-cover'
+                        height='84'
+                        src='/placeholder.svg'
+                        width='84'
+                      />
+                    </button>
+                    <button className='flex aspect-square w-full items-center justify-center rounded-md border border-dashed'>
+                      <Upload className='h-4 w-4 text-muted-foreground' />
+                      <span className='sr-only'>Upload</span>
+                    </button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className='max-w-sm'>
+              <CardHeader className='space-y-1'>
+                <CardTitle className='text-2xl'>Company Details</CardTitle>
+                <CardDescription>
+                  Please share your account details where the payments will be
+                  settled.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className='grid gap-4'>
+                <div className='grid gap-2'>
+                  <Label htmlFor='account'>Account Number</Label>
+                  <Input
+                    id='account'
+                    type='text'
+                    placeholder='1234567890'
+                    autoFocus
+                  />
+                </div>
+                <div className='grid gap-2'>
+                  <Label htmlFor='ifsc'>IFSC</Label>
+                  <InputOTP id='ifsc' maxLength={11} type='text'>
+                    <Input
+                      id='account'
+                      type='text'
+                      placeholder='ABCD1234567'
+                      maxLength={11}
+                      minLength={11}
+                      autoFocus
+                    />
+                  </InputOTP>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button className='w-full'>Create account</Button>
+              </CardFooter>
+            </Card>
+          </div>
+        );
+      case 'second-integration':
+        return (
+          <div className='grid overflow-y-scroll'>
+            <Card className='w-full'>
+              <CardHeader className='space-y-1'>
+                <CardTitle className='text-2xl'>Integrate</CardTitle>
+                <CardDescription>
+                  Copy the code given below & proceed to add the same in your
+                  theme.liquid file
+                </CardDescription>
+              </CardHeader>
+              <CardContent className='grid gap-4 overflow-hidden'>
+                <pre className='mt-2 rounded-md bg-slate-800 p-4 text-wrap'>
+                  <code className='text-white break-all'>{`<script src="https://feassetsnew.blob.core.windows.net/scripts/Integration.js"></script>`}</code>
+                </pre>
+              </CardContent>
+              <CardFooter>
+                <Button className='w-full'>
+                  <CopyIcon className='w-4 h-4 mr-2' /> Copy Code
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        );
+
+      case 'third-golive':
+        return (
+          <Card>
+            <CardHeader className='grid grid-cols-[1fr_110px] items-start gap-4 space-y-0'>
+              <div className='space-y-1'>
+                <CardTitle>Let's Go Live!</CardTitle>
+                <CardDescription>
+                  You're all set to go live. Let's do your first test
+                  transaction now.
+                </CardDescription>
+              </div>
+              <div className='flex items-center space-x-1 rounded-md bg-secondary text-secondary-foreground'>
+                <Button variant='secondary' className='px-3 shadow-none'>
+                  <StarIcon className='mr-2 h-4 w-4' />
+                  Test now
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className='flex space-x-4 text-sm text-muted-foreground'>
+                <div className='flex items-center'>
+                  <CircleIcon className={`mr-1 h-3 w-3 text-sky-400`} />
+                  TypeScript
+                </div>
+                <div className='flex items-center'>
+                  <StarIcon className='mr-1 h-3 w-3' />
+                  20k
+                </div>
+                <div>Updated {`5 seconds ago`}</div>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      default:
+        return 'no text';
+    }
+  };
 
   return (
     <div className='flex h-full flex-col'>
@@ -201,10 +397,10 @@ export function MailDisplay({ mail }: MailDisplayProps) {
           </div>
           <Separator />
           <div className='flex-1 whitespace-pre-wrap p-4 text-sm'>
-            {mail.id == 'first-onboarding' ? <div></div> : mail.text}
+            {regisFn(mail?.id)}
           </div>
           <Separator className='mt-auto' />
-          <div className='p-4'>
+          {/* <div className='p-4'>
             <form>
               <div className='grid gap-4'>
                 <Textarea
@@ -229,7 +425,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                 </div>
               </div>
             </form>
-          </div>
+          </div> */}
         </div>
       ) : (
         <div className='p-8 text-center text-muted-foreground'>
