@@ -13,13 +13,17 @@ import {
   Upload
 } from 'lucide-react';
 
-import Cookies from 'js-cookie';
-import { generateOTP, validateOTPToken,getMerchantId } from '@/app/lib/actions';
+import {
+  generateOTP,
+  getMerchantId,
+  validateOTPToken
+} from '@/app/lib/actions';
 import { Mail } from '@/data';
+import CheckCircleIcon from '@heroicons/react/24/solid/CheckCircleIcon';
 import { addDays, addHours, format, nextSaturday } from 'date-fns';
+import Cookies from 'js-cookie';
 import Image from 'next/image';
 import { useState } from 'react';
-import CheckCircleIcon from '@heroicons/react/24/solid/CheckCircleIcon';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import { Calendar } from './ui/calendar';
@@ -50,10 +54,27 @@ interface MailDisplayProps {
 
 export function MailDisplay({ mail }: MailDisplayProps) {
   const today = new Date();
+  const onboardingSteps = [
+    'OTPSent',
+    'OTPverifed',
+    'MerchantIDCreated',
+    'BrandCoverUploaded',
+    'GSTValidated',
+    'AccountValidated'
+  ];
   const [currentState, setCurrentState] = useState('');
-  const [otpVerified, setOtpVerified] = useState(false);
+
   const [phone, setPhone] = useState('');
   const [OTP, setOTP] = useState('');
+
+  const validateStep = (step: string) => {
+    return (
+      onboardingSteps?.findIndex(
+        x => currentState?.toLowerCase() == x?.toLowerCase()
+      ) >=
+      onboardingSteps?.findIndex(x => x?.toLowerCase() == step?.toLowerCase())
+    );
+  };
 
   const getOTP = async () => {
     try {
@@ -70,11 +91,10 @@ export function MailDisplay({ mail }: MailDisplayProps) {
     try {
       const sessionId = await validateOTPToken(phone, OTP);
       if (sessionId) {
-        setCurrentState('OTPVerified');
         const merchantId = await getMerchantId(phone, sessionId);
         if (merchantId) {
           Cookies.set('merchantId', merchantId); // Store merchantId in a cookie
-          setOtpVerified(true);
+          setCurrentState('OTPVerified');
         } else {
           console.error('Failed to retrieve merchant ID');
         }
@@ -132,7 +152,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                       </InputOTPGroup>
                     </InputOTP>
                   </div>
-                  {otpVerified && (
+                  {validateStep('OTPVerified') && (
                     <div className='flex items-center justify-center'>
                       <CheckCircleIcon className='h-5 w-5 text-green-500' />
                       <span className='ml-2 text-green-500'>Verified</span>
@@ -140,11 +160,15 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                   )}
                 </CardContent>
                 <CardFooter>
-                    {!otpVerified && (
-                        <Button onClick={currentState === 'OTPSent' ? submitOTP : getOTP}>
-                            {currentState === 'OTPSent' ? 'Verify OTP' : 'Request OTP'}
-                        </Button>
-                    )}
+                  {!validateStep('OTPVerified') && (
+                    <Button
+                      onClick={currentState === 'OTPSent' ? submitOTP : getOTP}
+                    >
+                      {currentState === 'OTPSent'
+                        ? 'Verify OTP'
+                        : 'Request OTP'}
+                    </Button>
+                  )}
                 </CardFooter>
               </form>
             </Card>
