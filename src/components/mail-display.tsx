@@ -55,19 +55,28 @@ interface MailDisplayProps {
 export function MailDisplay({ mail }: MailDisplayProps) {
   const today = new Date();
   const onboardingSteps = [
+    'Start',
     'OTPSent',
-    'OTPverifed',
+    'OTPVerified',
     'MerchantIDCreated',
     'BrandCoverUploaded',
     'GSTValidated',
     'AccountValidated'
   ];
-  const [currentState, setCurrentState] = useState('');
+  const [currentState, setCurrentState] = useState('Start');
 
   const [phone, setPhone] = useState('');
   const [OTP, setOTP] = useState('');
 
   const validateStep = (step: string) => {
+    console.log(
+      '// strat',
+      step,
+      onboardingSteps?.findIndex(
+        x => currentState?.toLowerCase() == x?.toLowerCase()
+      ) >=
+        onboardingSteps?.findIndex(x => x?.toLowerCase() == step?.toLowerCase())
+    );
     return (
       onboardingSteps?.findIndex(
         x => currentState?.toLowerCase() == x?.toLowerCase()
@@ -224,8 +233,8 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                 <CardHeader className='space-y-1'>
                   <CardTitle className='text-2xl'>Company Details</CardTitle>
                   <CardDescription>
-                    Please share your GSTIN/Company details to complete the
-                    onboarding check.
+                    Please share your GSTIN details to complete the onboarding
+                    check.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className='grid gap-4'>
