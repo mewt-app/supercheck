@@ -73,7 +73,9 @@ export function MailDisplay({ mail }: MailDisplayProps) {
         setCurrentState('OTPVerified');
         const merchantId = await getMerchantId(phone, sessionId);
         if (merchantId) {
-          Cookies.set('merchantId', merchantId); // Store merchantId in a cookie
+          Cookies.set('merchantId', merchantId);
+          console.log('merchantId',Cookies.get('merchantId'))
+          console.log('sessionId',Cookies.get('sessionId'))
           setOtpVerified(true);
         } else {
           console.error('Failed to retrieve merchant ID');

@@ -57,7 +57,7 @@ export const validateOTPToken = (phone: string, otp: string) => {
         console.log('OTP successfully verified');
         console.log(response.data.data.sessionId);
 
-        Cookies.set('sessionID', response.data.data.sessionId);
+        Cookies.set('sessionId', response.data.data.sessionId);
         return response.data.data.sessionId;
       } else {
         console.log('OTP verification failed');
