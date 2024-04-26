@@ -91,10 +91,12 @@ export function MailDisplay({ mail }: MailDisplayProps) {
     try {
       const sessionId = await validateOTPToken(phone, OTP);
       if (sessionId) {
+        Cookies.set('sessionId', sessionId);
+        setCurrentState('OTPVerified');
         const merchantId = await getMerchantId(phone, sessionId);
         if (merchantId) {
           Cookies.set('merchantId', merchantId); // Store merchantId in a cookie
-          setCurrentState('OTPVerified');
+          setCurrentState('MerchantIDCreated');
         } else {
           console.error('Failed to retrieve merchant ID');
         }
@@ -109,15 +111,15 @@ export function MailDisplay({ mail }: MailDisplayProps) {
       case 'first-onboarding':
         return (
           <div className='grid grid-cols-2 overflow-y-scroll'>
-            <Card className='max-w-sm'>
-              <CardHeader className='space-y-1'>
-                <CardTitle className='text-2xl'>Create an account</CardTitle>
-                <CardDescription>
-                  To get started with onboarding on SuperPe seller network,
-                  please enter your phone number.
-                </CardDescription>
-              </CardHeader>
-              <form action={currentState == 'OTPSent' ? submitOTP : getOTP}>
+            {!validateStep('MerchantIDCreated') && (
+              <Card className='max-w-sm'>
+                <CardHeader className='space-y-1'>
+                  <CardTitle className='text-2xl'>Create an account</CardTitle>
+                  <CardDescription>
+                    To get started with onboarding on SuperPe seller network,
+                    please enter your phone number.
+                  </CardDescription>
+                </CardHeader>
                 <CardContent className='grid gap-4'>
                   <div className='grid gap-2'>
                     <Label htmlFor='phone'>Phone</Label>
@@ -170,87 +172,118 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                     </Button>
                   )}
                 </CardFooter>
-              </form>
-            </Card>
-            <Card className='overflow-hidden'>
-              <CardHeader>
-                <CardTitle>Brand Assets</CardTitle>
-                <CardDescription>
-                  Please upload your brand cover image for the checkout
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className='grid gap-2'>
-                  <Image
-                    alt='Product image'
-                    className='aspect-square w-full rounded-md object-cover'
-                    height='300'
-                    src='/placeholder.svg'
-                    width='300'
-                  />
-                  <div className='grid grid-cols-3 gap-2'>
-                    <button>
-                      <Image
-                        alt='Product image'
-                        className='aspect-square w-full rounded-md object-cover'
-                        height='84'
-                        src='/placeholder.svg'
-                        width='84'
-                      />
-                    </button>
-                    <button>
-                      <Image
-                        alt='Product image'
-                        className='aspect-square w-full rounded-md object-cover'
-                        height='84'
-                        src='/placeholder.svg'
-                        width='84'
-                      />
-                    </button>
-                    <button className='flex aspect-square w-full items-center justify-center rounded-md border border-dashed'>
-                      <Upload className='h-4 w-4 text-muted-foreground' />
-                      <span className='sr-only'>Upload</span>
-                    </button>
+              </Card>
+            )}
+            {!validateStep('BrandCoverUploaded') && (
+              <Card className='overflow-hidden'>
+                <CardHeader>
+                  <CardTitle>Brand Assets</CardTitle>
+                  <CardDescription>
+                    Please upload your brand cover image for the checkout
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className='grid gap-2'>
+                    <Image
+                      alt='Product image'
+                      className='aspect-square w-full rounded-md object-cover'
+                      height='300'
+                      src='/placeholder.svg'
+                      width='300'
+                    />
+                    <div className='grid grid-cols-3 gap-2'>
+                      <button>
+                        <Image
+                          alt='Product image'
+                          className='aspect-square w-full rounded-md object-cover'
+                          height='84'
+                          src='/placeholder.svg'
+                          width='84'
+                        />
+                      </button>
+                      <button>
+                        <Image
+                          alt='Product image'
+                          className='aspect-square w-full rounded-md object-cover'
+                          height='84'
+                          src='/placeholder.svg'
+                          width='84'
+                        />
+                      </button>
+                      <button className='flex aspect-square w-full items-center justify-center rounded-md border border-dashed'>
+                        <Upload className='h-4 w-4 text-muted-foreground' />
+                        <span className='sr-only'>Upload</span>
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className='max-w-sm'>
-              <CardHeader className='space-y-1'>
-                <CardTitle className='text-2xl'>Company Details</CardTitle>
-                <CardDescription>
-                  Please share your account details where the payments will be
-                  settled.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className='grid gap-4'>
-                <div className='grid gap-2'>
-                  <Label htmlFor='account'>Account Number</Label>
-                  <Input
-                    id='account'
-                    type='text'
-                    placeholder='1234567890'
-                    autoFocus
-                  />
-                </div>
-                <div className='grid gap-2'>
-                  <Label htmlFor='ifsc'>IFSC</Label>
-                  <InputOTP id='ifsc' maxLength={11} type='text'>
+                </CardContent>
+              </Card>
+            )}
+            {!validateStep('GSTValidated') && (
+              <Card className='max-w-sm'>
+                <CardHeader className='space-y-1'>
+                  <CardTitle className='text-2xl'>Company Details</CardTitle>
+                  <CardDescription>
+                    Please share your GSTIN/Company details to complete the
+                    onboarding check.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className='grid gap-4'>
+                  <div className='grid gap-2'>
+                    <Label htmlFor='account'>GSTIN</Label>
                     <Input
                       id='account'
                       type='text'
-                      placeholder='ABCD1234567'
-                      maxLength={11}
-                      minLength={11}
+                      placeholder='1234567890'
                       autoFocus
                     />
-                  </InputOTP>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button className='w-full'>Create account</Button>
-              </CardFooter>
-            </Card>
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button className='w-full'>Create account</Button>
+                </CardFooter>
+              </Card>
+            )}
+            {!validateStep('AccountValidated') && (
+              <Card className='max-w-sm'>
+                <CardHeader className='space-y-1'>
+                  <CardTitle className='text-2xl'>
+                    Settlement Account Details
+                  </CardTitle>
+                  <CardDescription>
+                    Please share your account details where the payments will be
+                    settled.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className='grid gap-4'>
+                  <div className='grid gap-2'>
+                    <Label htmlFor='account'>Account Number</Label>
+                    <Input
+                      id='account'
+                      type='text'
+                      placeholder='1234567890'
+                      autoFocus
+                    />
+                  </div>
+                  <div className='grid gap-2'>
+                    <Label htmlFor='ifsc'>IFSC</Label>
+                    <InputOTP id='ifsc' maxLength={11} type='text'>
+                      <Input
+                        id='account'
+                        type='text'
+                        placeholder='ABCD1234567'
+                        maxLength={11}
+                        minLength={11}
+                        autoFocus
+                      />
+                    </InputOTP>
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button className='w-full'>Create account</Button>
+                </CardFooter>
+              </Card>
+            )}
           </div>
         );
       case 'second-integration':

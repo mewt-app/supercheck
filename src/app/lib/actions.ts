@@ -1,5 +1,4 @@
 import axios from 'axios';
-import Cookies from 'js-cookie';
 
 const baseURL = 'https://api.mewt.in/backend/v1/';
 
@@ -35,13 +34,13 @@ export const generateOTP = (phone: string) => {
 };
 
 export const validateOTPToken = (phone: string, otp: string) => {
-  console.log('phone',phone);
-  console.log('otp',otp);
+  console.log('phone', phone);
+  console.log('otp', otp);
   return axios
     .post(
       baseURL + 'authentication/otp-authentication/validate-token/',
       {
-        phone: '+91'+phone,
+        phone: '+91' + phone,
         token: otp
       },
       {
@@ -52,12 +51,11 @@ export const validateOTPToken = (phone: string, otp: string) => {
       }
     )
     .then(response => {
-      console.log('response', response)
+      console.log('response', response);
       if (response.status === 200) {
         console.log('OTP successfully verified');
         console.log(response.data.data.sessionId);
 
-        Cookies.set('sessionId', response.data.data.sessionId);
         return response.data.data.sessionId;
       } else {
         console.log('OTP verification failed');
@@ -75,7 +73,7 @@ export const getMerchantId = (phone, sessionId) => {
     .post(
       baseURL + 'merchant/',
       {
-        phone: '+91'+phone
+        phone: '+91' + phone
       },
       {
         headers: {
@@ -86,7 +84,7 @@ export const getMerchantId = (phone, sessionId) => {
       }
     )
     .then(response => {
-      if(response.status===200){
+      if (response.status === 200) {
         console.log('Fetched merchant id', response.data.merchantId);
         return response.data.merchantId;
       }
