@@ -16,7 +16,10 @@ import {
 import {
   generateOTP,
   getMerchantId,
-  validateOTPToken
+  validateOTPToken,
+  getGstinDetails,
+  verifyBankAccount,
+  addBusinessDetails
 } from '@/app/lib/actions';
 import { Mail } from '@/data';
 import CheckCircleIcon from '@heroicons/react/24/solid/CheckCircleIcon';
@@ -67,6 +70,14 @@ export function MailDisplay({ mail }: MailDisplayProps) {
 
   const [phone, setPhone] = useState('');
   const [OTP, setOTP] = useState('');
+  const [imageBase64, setImageBase64] = useState('');
+  const [companyDetails, setCompanyDetails] = useState('');
+  const [isGstinVerified, setGstinVerified] = useState(false);
+  const [isAccountVerified, setAccountVerified] = useState(false);
+  const [accountNumber, setAccountNumber] = useState('');
+  const [ifscCode, setIfscCode] = useState('');
+  const [bankName, setBankName] = useState('');
+  const [gstin, setGstin] = useState('');
 
   const validateStep = (step: string) => {
     console.log(
@@ -112,6 +123,99 @@ export function MailDisplay({ mail }: MailDisplayProps) {
       }
     } catch (error) {
       console.error('Error validating OTP:', error);
+    }
+  };
+
+  // Function to convert image to base64
+  const handleImageUpload = (event) => {
+    const file = event.target.files[0];
+    if (!file) {
+      console.error('No file selected.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      // Split the result to extract the base64 part
+      const result = reader.result;
+      const match = result.match(/^data:(.*);base64,(.*)$/);
+      if (match) {
+        const base64String = match[2];
+        setImageBase64(base64String); // Set the state with just the base64 string
+        console.log("Base64 String:", base64String);
+        setCurrentState('BrandCoverUploaded');
+      } else {
+        console.error('Failed to parse the base64 string.');
+      }
+    };
+
+    reader.onerror = (error) => {
+      console.error('Error reading file:', error);
+    };
+
+    reader.readAsDataURL(file); // Start the file reading process which triggers `onload`
+  };
+
+  const handleVerifyGstin = async () => {
+    try {
+      const merchantId = Cookies.get('merchantId');
+      const sessionId = Cookies.get('sessionId');
+      console.log(sessionId)
+      console.log(merchantId)
+      const details = await getGstinDetails(merchantId, gstin, sessionId);
+      if (details) {
+        setCompanyDetails(details.gstin_trade_name);
+        setGstinVerified(true);
+      }
+    } catch (error) {
+      console.error('Error fetching GSTIN details:', error);
+    }
+  };
+
+  const handleNextAccount = () => {
+    console.log("Account creation logic here");
+    setCurrentState('GSTValidated');
+  };
+
+  const handleVerifyAccount = async () => {
+    const merchantId = Cookies.get('merchantId');
+    const sessionId = Cookies.get('sessionId');
+
+    if (!merchantId || !sessionId) {
+      console.error('Session ID or Merchant ID is missing');
+      return;
+    }
+
+    try {
+      const nameOnBank = await verifyBankAccount(accountNumber, ifscCode, merchantId, sessionId);
+      setBankName(nameOnBank);
+      setAccountVerified(true);
+    } catch (error) {
+      console.error('Error during bank account verification:', error);
+    }
+  };
+
+  const handleAddBusinessDetails = async () => {
+    const merchantId = Cookies.get('merchantId');
+    const sessionId = Cookies.get('sessionId');
+    const cardBgImg = imageBase64; 
+
+    if (!merchantId || !sessionId) {
+      console.error('Session ID or Merchant ID is missing');
+      return;
+    }
+
+    try {
+      const result = await addBusinessDetails(cardBgImg, merchantId, gstin, accountNumber, ifscCode, sessionId);
+      console.log('Business details added:', result);
+      if (result){
+        console.log("Bussiness account got created ",result);
+        Cookies.set('beneId', result.beneId);
+        Cookies.set('merchantId', result.merchantId);
+        setCurrentState('AccountValidated'); 
+      }
+    } catch (error) {
+      console.error('Error adding business details:', error);
     }
   };
 
@@ -219,10 +323,25 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                           width='84'
                         />
                       </button>
-                      <button className='flex aspect-square w-full items-center justify-center rounded-md border border-dashed'>
+                      <button>
+                        <Image
+                          alt='Brand cover placeholder'
+                          className='aspect-square w-full rounded-md object-cover'
+                          height='84'
+                          src='/placeholder.svg'
+                          width='84'
+                        />
+                      </button>
+                      <label className='flex aspect-square w-full items-center justify-center rounded-md border border-dashed cursor-pointer'>
+                        <input
+                          type='file'
+                          accept='image/*'
+                          onChange={handleImageUpload}
+                          style={{ display: 'none' }} // Hide the actual input element
+                        />
                         <Upload className='h-4 w-4 text-muted-foreground' />
                         <span className='sr-only'>Upload</span>
-                      </button>
+                      </label>
                     </div>
                   </div>
                 </CardContent>
@@ -239,17 +358,30 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                 </CardHeader>
                 <CardContent className='grid gap-4'>
                   <div className='grid gap-2'>
-                    <Label htmlFor='account'>GSTIN</Label>
+                    <Label htmlFor='gstin'>GSTIN</Label>
                     <Input
-                      id='account'
+                      id='gstin'
                       type='text'
-                      placeholder='1234567890'
+                      placeholder='1234567890ABCDEF'
                       autoFocus
+                      value={gstin}
+                      onChange={e => {
+                        console.log("Before setting GSTIN:", gstin);
+                        setGstin(e.target.value);
+                        console.log("After setting GSTIN:", e.target.value);
+                      }}
                     />
+                    {isGstinVerified && (
+                      <div className='text-green-500'>
+                        TRADE NAME - {companyDetails}
+                      </div>
+                    )}
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <Button className='w-full'>Create account</Button>
+                  <Button className='w-full' onClick={!isGstinVerified ? handleVerifyGstin : handleNextAccount}>
+                    {!isGstinVerified ? 'Verify GSTIN' : 'Continue'}
+                  </Button>
                 </CardFooter>
               </Card>
             )}
@@ -265,32 +397,38 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className='grid gap-4'>
-                  <div className='grid gap-2'>
-                    <Label htmlFor='account'>Account Number</Label>
-                    <Input
-                      id='account'
-                      type='text'
-                      placeholder='1234567890'
-                      autoFocus
-                    />
-                  </div>
-                  <div className='grid gap-2'>
-                    <Label htmlFor='ifsc'>IFSC</Label>
-                    <InputOTP id='ifsc' maxLength={11} type='text'>
+                    <div className='grid gap-2'>
+                      <Label htmlFor='accountNumber'>Account Number</Label>
                       <Input
-                        id='account'
+                        id='accountNumber'
                         type='text'
-                        placeholder='ABCD1234567'
-                        maxLength={11}
-                        minLength={11}
+                        placeholder='Account Number'
+                        value={accountNumber}
+                        onChange={(e) => setAccountNumber(e.target.value)}
                         autoFocus
                       />
-                    </InputOTP>
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button className='w-full'>Create account</Button>
-                </CardFooter>
+                    </div>
+                    <div className='grid gap-2'>
+                      <Label htmlFor='ifscCode'>IFSC Code</Label>
+                      <Input
+                        id='ifscCode'
+                        type='text'
+                        placeholder='IFSC Code'
+                        value={ifscCode}
+                        onChange={(e) => setIfscCode(e.target.value)}
+                      />
+                    </div>
+                    {isAccountVerified && (
+                      <div className='text-green-500'>
+                        NAME FROM BANK: {bankName}
+                      </div>
+                    )}
+                  </CardContent>
+                  <CardFooter>
+                    <Button className='w-full' onClick={!isAccountVerified ? handleVerifyAccount : handleAddBusinessDetails}>
+                      {!isAccountVerified ? 'Verify Account' : 'Create Account'}
+                    </Button>
+                  </CardFooter>
               </Card>
             )}
           </div>

@@ -96,7 +96,6 @@ export const getMerchantId = (phone, sessionId) => {
 };
 
 export const addBusinessDetails = (
-  displayName: string,
   cardBgImg: string,
   merchantId: string,
   gstin: string,
@@ -106,15 +105,14 @@ export const addBusinessDetails = (
 ) => {
   // Request body
   const data = {
-    display_name: displayName,
     cardBgImg: cardBgImg,
     merchantId: merchantId,
     gstin: gstin,
     accountNumber: accountNumber,
     ifsc: ifsc
   };
+  console.log("base 64 image",cardBgImg);
 
-  // Make a POST request to the API endpoint
   return axios
     .post(baseURL + 'merchant/add-business-details', data, {
       headers: {
@@ -125,6 +123,7 @@ export const addBusinessDetails = (
       }
     })
     .then(response => {
+      console.log("response from business creation ",response);
       return {
         beneId: response.data.bene_id,
         merchantId: response.data.merchant_id
@@ -134,4 +133,67 @@ export const addBusinessDetails = (
       console.error('Error adding business details:', error);
       return null;
     });
+};
+
+
+export const getGstinDetails = (
+  merchantId: string,
+  gstin: string,
+  sessionId: string
+) => {
+  // Request body
+
+  // Make a POST request to the API endpoint
+  console.log('gstin',gstin)
+  return axios
+    .post(baseURL + 'merchant/verify-gstin/'+ gstin,{}, {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'session-id': sessionId,
+        'merchant-id': merchantId
+      }
+    })
+    .then(response => {
+      console.log("gstin details", response);
+      console.log("gstin details inside", response.data.trade_name_of_business);
+      return {
+        gstin_trade_name: response.data.trade_name_of_business
+      };
+    })
+    .catch(error => {
+      console.error('Error getting gstin details:', error);
+      return null;
+    });
+};
+
+export const verifyBankAccount =  async(
+  accountNumber:string, 
+  ifscCode:string,
+  merchantId:string,
+  sessionId:string
+) => {
+  console.log("came to veriy account details")
+  const url = 'https://api.mewt.in/backend/v1/account-verification/';
+  const apiKey = 'S1wNkFBuj58vw7EZoRIxo48PwKfsv7Np8Z6hoOfy';
+  const headers = {
+      accept: 'application/json',
+      'Content-Type': 'application/json',
+      'session-id': sessionId,
+      'merchant-id': merchantId
+  };
+  const data = {
+      type: "account",
+      accountNumber: accountNumber,
+      ifscCode: ifscCode
+  };
+
+  try {
+      const response = await axios.post(url, data, { headers });
+      console.log("response from veriy account details ",response);
+      return response.data.nameOnBank;
+  } catch (error) {
+      console.error('Error verifying bank account:', error);
+      return null;
+  }
 };
