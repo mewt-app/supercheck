@@ -22,11 +22,7 @@ import { MailDisplay } from './mail-display';
 import { MailList } from './mail-list';
 import { Nav } from './nav';
 import { Input } from './ui/input';
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup
-} from './ui/resizable';
+import { ResizablePanel, ResizablePanelGroup } from './ui/resizable';
 import { Separator } from './ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { TooltipProvider } from './ui/tooltip';
@@ -46,7 +42,7 @@ interface MailProps {
 export function Mail({
   accounts,
   mails,
-  defaultLayout = [265, 440, 655],
+  defaultLayout = [165, 440, 755],
   defaultCollapsed = false,
   navCollapsedSize
 }: MailProps) {
@@ -168,7 +164,7 @@ export function Mail({
             ]}
           />
         </ResizablePanel>
-        <ResizableHandle withHandle />
+        {/* <ResizableHandle withHandle /> */}
         <ResizablePanel defaultSize={defaultLayout[1]} minSize={30}>
           <Tabs defaultValue='all'>
             <div className='flex items-center px-4 py-2'>
@@ -205,7 +201,7 @@ export function Mail({
             </TabsContent>
           </Tabs>
         </ResizablePanel>
-        <ResizableHandle withHandle />
+        {/* <ResizableHandle withHandle /> */}
         <ResizablePanel defaultSize={defaultLayout[2]}>
           <MailDisplay
             mail={mails.find(item => item.id === mail.selected) || null}

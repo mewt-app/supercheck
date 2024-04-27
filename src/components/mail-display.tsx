@@ -1,29 +1,28 @@
 import {
-  Archive,
-  ArchiveX,
   CircleIcon,
   Clock,
   CopyIcon,
   Forward,
+  MailIcon,
   MoreVertical,
+  PhoneIcon,
   Reply,
   ReplyAll,
   StarIcon,
-  Trash2,
   Upload
 } from 'lucide-react';
 
 import {
+  addBusinessDetails,
   generateOTP,
+  getGstinDetails,
   getMerchantId,
   validateOTPToken,
-  getGstinDetails,
-  verifyBankAccount,
-  addBusinessDetails
+  verifyBankAccount
 } from '@/app/lib/actions';
 import { Mail } from '@/data';
 import CheckCircleIcon from '@heroicons/react/24/solid/CheckCircleIcon';
-import { addDays, addHours, format, nextSaturday } from 'date-fns';
+import { format } from 'date-fns';
 import Cookies from 'js-cookie';
 import Image from 'next/image';
 import { useState } from 'react';
@@ -42,6 +41,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger
 } from './ui/dropdown-menu';
 import { Input } from './ui/input';
@@ -80,14 +80,14 @@ export function MailDisplay({ mail }: MailDisplayProps) {
   const [gstin, setGstin] = useState('');
 
   const validateStep = (step: string) => {
-    console.log(
-      '// strat',
-      step,
-      onboardingSteps?.findIndex(
-        x => currentState?.toLowerCase() == x?.toLowerCase()
-      ) >=
-        onboardingSteps?.findIndex(x => x?.toLowerCase() == step?.toLowerCase())
-    );
+    // console.log(
+    //   '// strat',
+    //   step,
+    //   onboardingSteps?.findIndex(
+    //     x => currentState?.toLowerCase() == x?.toLowerCase()
+    //   ) >=
+    //     onboardingSteps?.findIndex(x => x?.toLowerCase() == step?.toLowerCase())
+    // );
     return (
       onboardingSteps?.findIndex(
         x => currentState?.toLowerCase() == x?.toLowerCase()
@@ -127,7 +127,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
   };
 
   // Function to convert image to base64
-  const handleImageUpload = (event) => {
+  const handleImageUpload = event => {
     const file = event.target.files[0];
     if (!file) {
       console.error('No file selected.');
@@ -138,18 +138,18 @@ export function MailDisplay({ mail }: MailDisplayProps) {
     reader.onload = () => {
       // Split the result to extract the base64 part
       const result = reader.result;
-      const match = result.match(/^data:(.*);base64,(.*)$/);
+      const match = result?.match(/^data:(.*);base64,(.*)$/);
       if (match) {
         const base64String = match[2];
         setImageBase64(base64String); // Set the state with just the base64 string
-        console.log("Base64 String:", base64String);
+        console.log('Base64 String:', base64String);
         setCurrentState('BrandCoverUploaded');
       } else {
         console.error('Failed to parse the base64 string.');
       }
     };
 
-    reader.onerror = (error) => {
+    reader.onerror = error => {
       console.error('Error reading file:', error);
     };
 
@@ -160,9 +160,8 @@ export function MailDisplay({ mail }: MailDisplayProps) {
     try {
       const merchantId = Cookies.get('merchantId');
       const sessionId = Cookies.get('sessionId');
-      console.log(sessionId)
-      console.log(merchantId)
-      const details = await getGstinDetails(merchantId, gstin, sessionId);
+      const details =
+        merchantId && (await getGstinDetails(merchantId, gstin, sessionId));
       if (details) {
         setCompanyDetails(details.gstin_trade_name);
         setGstinVerified(true);
@@ -173,7 +172,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
   };
 
   const handleNextAccount = () => {
-    console.log("Account creation logic here");
+    console.log('Account creation logic here');
     setCurrentState('GSTValidated');
   };
 
@@ -187,7 +186,12 @@ export function MailDisplay({ mail }: MailDisplayProps) {
     }
 
     try {
-      const nameOnBank = await verifyBankAccount(accountNumber, ifscCode, merchantId, sessionId);
+      const nameOnBank = await verifyBankAccount(
+        accountNumber,
+        ifscCode,
+        merchantId,
+        sessionId
+      );
       setBankName(nameOnBank);
       setAccountVerified(true);
     } catch (error) {
@@ -198,7 +202,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
   const handleAddBusinessDetails = async () => {
     const merchantId = Cookies.get('merchantId');
     const sessionId = Cookies.get('sessionId');
-    const cardBgImg = imageBase64; 
+    const cardBgImg = imageBase64;
 
     if (!merchantId || !sessionId) {
       console.error('Session ID or Merchant ID is missing');
@@ -206,13 +210,20 @@ export function MailDisplay({ mail }: MailDisplayProps) {
     }
 
     try {
-      const result = await addBusinessDetails(cardBgImg, merchantId, gstin, accountNumber, ifscCode, sessionId);
+      const result = await addBusinessDetails(
+        cardBgImg,
+        merchantId,
+        gstin,
+        accountNumber,
+        ifscCode,
+        sessionId
+      );
       console.log('Business details added:', result);
-      if (result){
-        console.log("Bussiness account got created ",result);
+      if (result) {
+        console.log('Bussiness account got created ', result);
         Cookies.set('beneId', result.beneId);
         Cookies.set('merchantId', result.merchantId);
-        setCurrentState('AccountValidated'); 
+        setCurrentState('AccountValidated');
       }
     } catch (error) {
       console.error('Error adding business details:', error);
@@ -249,24 +260,27 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                       }}
                     />
                   </div>
-                  <div className='grid gap-2'>
-                    <Label htmlFor='otp'>OTP</Label>
-                    <InputOTP
-                      id='otp'
-                      maxLength={4}
-                      value={OTP}
-                      onChange={e => {
-                        setOTP(e);
-                      }}
-                    >
-                      <InputOTPGroup>
-                        <InputOTPSlot index={0} />
-                        <InputOTPSlot index={1} />
-                        <InputOTPSlot index={2} />
-                        <InputOTPSlot index={3} />
-                      </InputOTPGroup>
-                    </InputOTP>
-                  </div>
+                  {currentState === 'OTPSent' && (
+                    <div className='grid gap-2'>
+                      <Label htmlFor='otp'>OTP</Label>
+                      <InputOTP
+                        id='otp'
+                        maxLength={4}
+                        value={OTP}
+                        autoFocus={currentState === 'OTPSent'}
+                        onChange={e => {
+                          setOTP(e);
+                        }}
+                      >
+                        <InputOTPGroup>
+                          <InputOTPSlot index={0} />
+                          <InputOTPSlot index={1} />
+                          <InputOTPSlot index={2} />
+                          <InputOTPSlot index={3} />
+                        </InputOTPGroup>
+                      </InputOTP>
+                    </div>
+                  )}
                   {validateStep('OTPVerified') && (
                     <div className='flex items-center justify-center'>
                       <CheckCircleIcon className='h-5 w-5 text-green-500' />
@@ -287,116 +301,126 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                 </CardFooter>
               </Card>
             )}
-            {!validateStep('BrandCoverUploaded') && (
-              <Card className='overflow-hidden'>
-                <CardHeader>
-                  <CardTitle>Brand Assets</CardTitle>
-                  <CardDescription>
-                    Please upload your brand cover image for the checkout
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className='grid gap-2'>
-                    <Image
-                      alt='Product image'
-                      className='aspect-square w-full rounded-md object-cover'
-                      height='300'
-                      src='/placeholder.svg'
-                      width='300'
-                    />
-                    <div className='grid grid-cols-3 gap-2'>
-                      <button>
-                        <Image
-                          alt='Product image'
-                          className='aspect-square w-full rounded-md object-cover'
-                          height='84'
-                          src='/placeholder.svg'
-                          width='84'
-                        />
-                      </button>
-                      <button>
-                        <Image
-                          alt='Product image'
-                          className='aspect-square w-full rounded-md object-cover'
-                          height='84'
-                          src='/placeholder.svg'
-                          width='84'
-                        />
-                      </button>
-                      <button>
-                        <Image
-                          alt='Brand cover placeholder'
-                          className='aspect-square w-full rounded-md object-cover'
-                          height='84'
-                          src='/placeholder.svg'
-                          width='84'
-                        />
-                      </button>
-                      <label className='flex aspect-square w-full items-center justify-center rounded-md border border-dashed cursor-pointer'>
-                        <input
-                          type='file'
-                          accept='image/*'
-                          onChange={handleImageUpload}
-                          style={{ display: 'none' }} // Hide the actual input element
-                        />
-                        <Upload className='h-4 w-4 text-muted-foreground' />
-                        <span className='sr-only'>Upload</span>
-                      </label>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-            {!validateStep('GSTValidated') && (
-              <Card className='max-w-sm'>
-                <CardHeader className='space-y-1'>
-                  <CardTitle className='text-2xl'>Company Details</CardTitle>
-                  <CardDescription>
-                    Please share your GSTIN details to complete the onboarding
-                    check.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className='grid gap-4'>
-                  <div className='grid gap-2'>
-                    <Label htmlFor='gstin'>GSTIN</Label>
-                    <Input
-                      id='gstin'
-                      type='text'
-                      placeholder='1234567890ABCDEF'
-                      autoFocus
-                      value={gstin}
-                      onChange={e => {
-                        console.log("Before setting GSTIN:", gstin);
-                        setGstin(e.target.value);
-                        console.log("After setting GSTIN:", e.target.value);
-                      }}
-                    />
-                    {isGstinVerified && (
-                      <div className='text-green-500'>
-                        TRADE NAME - {companyDetails}
+            {!validateStep('BrandCoverUploaded') &&
+              validateStep('MerchantIDCreated') && (
+                <Card className='overflow-hidden'>
+                  <CardHeader>
+                    <CardTitle>Brand Assets</CardTitle>
+                    <CardDescription>
+                      Please upload your brand cover image for the checkout
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className='grid gap-2'>
+                      <Image
+                        alt='Product image'
+                        className='aspect-rect w-full rounded-md object-cover bg-transparent'
+                        height='300'
+                        width='300'
+                        src={
+                          'https://cdn.dribbble.com/userupload/14048261/file/original-046c06bfb2eb83d01e6d3c4ef3f64d02.jpg?resize=1504x1128'
+                        }
+                      />
+                      <div className='grid grid-cols-3 gap-2'>
+                        <button>
+                          <Image
+                            alt='Product image'
+                            className='aspect-square w-full rounded-md object-cover'
+                            height='84'
+                            src='https://cdn.dribbble.com/userupload/13945651/file/original-72096e24dd7ec1f59641e9007674ac13.jpg?resize=1504x1135'
+                            width='84'
+                          />
+                        </button>
+                        <button>
+                          <Image
+                            alt='Product image'
+                            className='aspect-square w-full rounded-md object-cover'
+                            height='84'
+                            src='https://cdn.dribbble.com/userupload/13957876/file/original-49ccb955300a89d80b46db59b15bffbf.png?resize=2048x1536'
+                            width='84'
+                          />
+                        </button>
+                        <button>
+                          <Image
+                            alt='Brand cover placeholder'
+                            className='aspect-square w-full rounded-md object-cover'
+                            height='84'
+                            src='https://images.unsplash.com/photo-1633533452148-a9657d2c9a5f?q=80&w=2831&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+                            width='84'
+                          />
+                        </button>
+                        <label className='flex aspect-square w-full items-center justify-center rounded-md border border-dashed cursor-pointer'>
+                          <input
+                            type='file'
+                            accept='image/*'
+                            onChange={handleImageUpload}
+                            style={{ display: 'none' }} // Hide the actual input element
+                          />
+                          <Upload className='h-4 w-4 text-muted-foreground' />
+                          <span className='sr-only'>Upload</span>
+                        </label>
                       </div>
-                    )}
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button className='w-full' onClick={!isGstinVerified ? handleVerifyGstin : handleNextAccount}>
-                    {!isGstinVerified ? 'Verify GSTIN' : 'Continue'}
-                  </Button>
-                </CardFooter>
-              </Card>
-            )}
-            {!validateStep('AccountValidated') && (
-              <Card className='max-w-sm'>
-                <CardHeader className='space-y-1'>
-                  <CardTitle className='text-2xl'>
-                    Settlement Account Details
-                  </CardTitle>
-                  <CardDescription>
-                    Please share your account details where the payments will be
-                    settled.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className='grid gap-4'>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            {!validateStep('GSTValidated') &&
+              validateStep('BrandCoverUploaded') && (
+                <Card className='max-w-sm'>
+                  <CardHeader className='space-y-1'>
+                    <CardTitle className='text-2xl'>Company Details</CardTitle>
+                    <CardDescription>
+                      Please share your GSTIN details to complete the onboarding
+                      check.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className='grid gap-4'>
+                    <div className='grid gap-2'>
+                      <Label htmlFor='gstin'>GSTIN</Label>
+                      <Input
+                        id='gstin'
+                        type='text'
+                        placeholder='1234567890ABCDEF'
+                        autoFocus
+                        value={gstin}
+                        onChange={e => {
+                          console.log('Before setting GSTIN:', gstin);
+                          setGstin(e.target.value);
+                          console.log('After setting GSTIN:', e.target.value);
+                        }}
+                      />
+                      {isGstinVerified && (
+                        <div className='text-green-500'>
+                          TRADE NAME - {companyDetails}
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Button
+                      className='w-full'
+                      onClick={
+                        !isGstinVerified ? handleVerifyGstin : handleNextAccount
+                      }
+                    >
+                      {!isGstinVerified ? 'Verify GSTIN' : 'Continue'}
+                    </Button>
+                  </CardFooter>
+                </Card>
+              )}
+            {!validateStep('AccountValidated') &&
+              validateStep('GSTValidated') && (
+                <Card className='max-w-sm'>
+                  <CardHeader className='space-y-1'>
+                    <CardTitle className='text-2xl'>
+                      Settlement Account Details
+                    </CardTitle>
+                    <CardDescription>
+                      Please share your account details where the payments will
+                      be settled.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className='grid gap-4'>
                     <div className='grid gap-2'>
                       <Label htmlFor='accountNumber'>Account Number</Label>
                       <Input
@@ -404,7 +428,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                         type='text'
                         placeholder='Account Number'
                         value={accountNumber}
-                        onChange={(e) => setAccountNumber(e.target.value)}
+                        onChange={e => setAccountNumber(e.target.value)}
                         autoFocus
                       />
                     </div>
@@ -415,7 +439,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                         type='text'
                         placeholder='IFSC Code'
                         value={ifscCode}
-                        onChange={(e) => setIfscCode(e.target.value)}
+                        onChange={e => setIfscCode(e.target.value)}
                       />
                     </div>
                     {isAccountVerified && (
@@ -425,12 +449,19 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                     )}
                   </CardContent>
                   <CardFooter>
-                    <Button className='w-full' onClick={!isAccountVerified ? handleVerifyAccount : handleAddBusinessDetails}>
+                    <Button
+                      className='w-full'
+                      onClick={
+                        !isAccountVerified
+                          ? handleVerifyAccount
+                          : handleAddBusinessDetails
+                      }
+                    >
                       {!isAccountVerified ? 'Verify Account' : 'Create Account'}
                     </Button>
                   </CardFooter>
-              </Card>
-            )}
+                </Card>
+              )}
           </div>
         );
       case 'second-integration':
@@ -492,7 +523,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
           </Card>
         );
       default:
-        return 'no text';
+        return mail?.text;
     }
   };
 
@@ -503,29 +534,20 @@ export function MailDisplay({ mail }: MailDisplayProps) {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant='ghost' size='icon' disabled={!mail}>
-                <Archive className='h-4 w-4' />
-                <span className='sr-only'>Archive</span>
+                <MailIcon className='h-4 w-4' />
+                <span className='sr-only'>Email SuperPe</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Archive</TooltipContent>
+            <TooltipContent>Email SuperPe</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant='ghost' size='icon' disabled={!mail}>
-                <ArchiveX className='h-4 w-4' />
-                <span className='sr-only'>Move to junk</span>
+                <PhoneIcon className='h-4 w-4' />
+                <span className='sr-only'>Call SuperPe</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Move to junk</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant='ghost' size='icon' disabled={!mail}>
-                <Trash2 className='h-4 w-4' />
-                <span className='sr-only'>Move to trash</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Move to trash</TooltipContent>
+            <TooltipContent>Call SuperPe</TooltipContent>
           </Tooltip>
           <Separator orientation='vertical' className='mx-1 h-6' />
           <Tooltip>
@@ -534,58 +556,20 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                 <TooltipTrigger asChild>
                   <Button variant='ghost' size='icon' disabled={!mail}>
                     <Clock className='h-4 w-4' />
-                    <span className='sr-only'>Snooze</span>
+                    <span className='sr-only'>Time Check</span>
                   </Button>
                 </TooltipTrigger>
               </PopoverTrigger>
               <PopoverContent className='flex w-[535px] p-0'>
                 <div className='flex flex-col gap-2 border-r px-2 py-4'>
-                  <div className='px-4 text-sm font-medium'>Snooze until</div>
-                  <div className='grid min-w-[250px] gap-1'>
-                    <Button
-                      variant='ghost'
-                      className='justify-start font-normal'
-                    >
-                      Later today{' '}
-                      <span className='ml-auto text-muted-foreground'>
-                        {format(addHours(today, 4), 'E, h:m b')}
-                      </span>
-                    </Button>
-                    <Button
-                      variant='ghost'
-                      className='justify-start font-normal'
-                    >
-                      Tomorrow
-                      <span className='ml-auto text-muted-foreground'>
-                        {format(addDays(today, 1), 'E, h:m b')}
-                      </span>
-                    </Button>
-                    <Button
-                      variant='ghost'
-                      className='justify-start font-normal'
-                    >
-                      This weekend
-                      <span className='ml-auto text-muted-foreground'>
-                        {format(nextSaturday(today), 'E, h:m b')}
-                      </span>
-                    </Button>
-                    <Button
-                      variant='ghost'
-                      className='justify-start font-normal'
-                    >
-                      Next week
-                      <span className='ml-auto text-muted-foreground'>
-                        {format(addDays(today, 7), 'E, h:m b')}
-                      </span>
-                    </Button>
-                  </div>
+                  <div className='px-4 text-sm font-medium'>Plan</div>
                 </div>
                 <div className='p-2'>
                   <Calendar />
                 </div>
               </PopoverContent>
             </Popover>
-            <TooltipContent>Snooze</TooltipContent>
+            <TooltipContent>Plan</TooltipContent>
           </Tooltip>
         </div>
         <div className='ml-auto flex items-center gap-2'>
@@ -627,9 +611,8 @@ export function MailDisplay({ mail }: MailDisplayProps) {
           </DropdownMenuTrigger>
           <DropdownMenuContent align='end'>
             <DropdownMenuItem>Mark as unread</DropdownMenuItem>
-            <DropdownMenuItem>Star thread</DropdownMenuItem>
-            <DropdownMenuItem>Add label</DropdownMenuItem>
-            <DropdownMenuItem>Mute thread</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className='text-red-500'>Logout</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -641,10 +624,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
               <Avatar>
                 <AvatarImage alt={mail.name} />
                 <AvatarFallback>
-                  {mail.name
-                    .split(' ')
-                    .map(chunk => chunk[0])
-                    .join('')}
+                  {mail.name.replace(/[^\w\s]/gi, '')[0]}
                 </AvatarFallback>
               </Avatar>
               <div className='grid gap-1'>

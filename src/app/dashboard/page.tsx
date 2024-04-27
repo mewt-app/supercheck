@@ -10,6 +10,8 @@ export default function Home() {
   const defaultLayout = layout ? JSON.parse(layout.value) : undefined;
   const defaultCollapsed = collapsed ? JSON.parse(collapsed.value) : undefined;
 
+  const sessionId = cookies().get('sessionId');
+
   return (
     <>
       <div className='md:hidden'>
