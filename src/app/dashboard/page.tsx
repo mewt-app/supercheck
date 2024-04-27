@@ -1,7 +1,12 @@
 import { Mail } from '@/components/mail';
-import { accounts, mails } from '@/data';
+import { accounts, mails ,mails2} from '@/data';
 import { cookies } from 'next/headers';
 import Image from 'next/image';
+import {
+ fetchEmailsBene
+} from '@/app/lib/actions';
+import Cookies from 'js-cookie';
+
 
 export default function Home() {
   const layout = cookies().get('react-resizable-panels:layout');
@@ -10,7 +15,9 @@ export default function Home() {
   const defaultLayout = layout ? JSON.parse(layout.value) : undefined;
   const defaultCollapsed = collapsed ? JSON.parse(collapsed.value) : undefined;
 
-  const sessionId = cookies().get('sessionId');
+  // const sessionId = cookies().get('sessionId');
+
+  const beneId = Cookies.get('beneId');
 
   return (
     <>

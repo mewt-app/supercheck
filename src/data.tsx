@@ -1,3 +1,13 @@
+import {
+  fetchEmailsBene
+ } from '@/app/lib/actions';
+
+import Cookies from 'js-cookie';
+
+const beneId = Cookies.get('beneId') || 'be_123456';
+
+export const mails2 = fetchEmailsBene(beneId);
+ 
 export const mails = [
   {
     id: 'first-onboarding',

@@ -197,3 +197,47 @@ export const verifyBankAccount =  async(
       return null;
   }
 };
+
+export const fetchEmailsBene = (beneId:string) => {
+  console.log('came to fetch emails for bene',beneId)
+  return axios
+    .get(baseURL + 'merchant/get-business-details-emails/'+ beneId, {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => {
+      console.log("email fetched details", response);
+      return {
+        emails: response.data
+      };
+    })
+    .catch(error => {
+      console.error('Error fetching emails:', error);
+      return null;
+    });
+};
+
+export const markEmailsReadBene = (beneId : string ,merchantId: string , sessionId: string,emailId:string) => {
+  console.log('came to fetch emails for bene',beneId)
+  return axios
+    .post(baseURL + 'merchant/mark-email-as-read/'+ beneId + '/' + emailId,{}, {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'session-id': sessionId,
+        'merchant-id': merchantId
+      }
+    })
+    .then(response => {
+      console.log("email marked as read", response);
+      return {
+        response: response.data
+      };
+    })
+    .catch(error => {
+      console.error('Error marked as email as read:', error);
+      return null;
+    });
+};
