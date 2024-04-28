@@ -79,7 +79,8 @@ export function MailDisplay({ mail }: MailDisplayProps) {
   const [ifscCode, setIfscCode] = useState('');
   const [bankName, setBankName] = useState('');
   const [gstin, setGstin] = useState('');
-
+  const [isCopied, setIsCopied] = useState(false);
+  const integrationScript = `<script src="https://feassetsnew.blob.core.windows.net/scripts/Integration.js"></script>`
   const validateStep = (step: string) => {
     // console.log(
     //   '// strat',
@@ -230,7 +231,17 @@ export function MailDisplay({ mail }: MailDisplayProps) {
       console.error('Error adding business details:', error);
     }
   };
-
+  const copyCodeHandler = async ()=>{
+    try {
+      await navigator.clipboard.writeText(integrationScript);
+      setIsCopied(true);
+      setTimeout(() => {
+        setIsCopied(false);
+      }, 2000);
+    } catch (err) {
+      console.log(err);
+    }
+  }
   const regisFn = (id: string) => {
     switch (id) {
       case 'first-onboarding':
@@ -478,13 +489,14 @@ export function MailDisplay({ mail }: MailDisplayProps) {
               </CardHeader>
               <CardContent className='grid gap-4 overflow-hidden'>
                 <pre className='mt-2 rounded-md bg-slate-800 p-4 text-wrap'>
-                  <code className='text-white break-all'>{`<script src="https://feassetsnew.blob.core.windows.net/scripts/Integration.js"></script>`}</code>
+                  <code className='text-white break-all'>{integrationScript}</code>
                 </pre>
               </CardContent>
-              <CardFooter>
-                <Button className='w-full'>
+              <CardFooter className="flex-col">
+                <Button className='w-full' onClick={copyCodeHandler}>
                   <CopyIcon className='w-4 h-4 mr-2' /> Copy Code
                 </Button>
+                {isCopied && (<small className="mt-2">The code has been copied to your clipboard!</small>)}
               </CardFooter>
             </Card>
           </div>
@@ -495,9 +507,9 @@ export function MailDisplay({ mail }: MailDisplayProps) {
           <Card>
             <CardHeader className='grid grid-cols-[1fr_110px] items-start gap-4 space-y-0'>
               <div className='space-y-1'>
-                <CardTitle>Let's Go Live!</CardTitle>
+                <CardTitle>Let&apos;s Go Live!</CardTitle>
                 <CardDescription>
-                  You're all set to go live. Let's do your first test
+                  You&apos;re all set to go live. Let&apos;s do your first test
                   transaction now.
                 </CardDescription>
               </div>
@@ -526,7 +538,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
         return mail?.text;
     }
   };
-
+ 
   return (
     <div className='flex h-full flex-col'>
       <div className='flex items-center p-2'>
