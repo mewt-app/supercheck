@@ -3,6 +3,7 @@ import {
   Clock,
   CopyIcon,
   Forward,
+  IndianRupeeIcon,
   MailIcon,
   MoreVertical,
   PhoneIcon,
@@ -511,11 +512,10 @@ export function MailDisplay({ mail }: MailDisplayProps) {
               <div className='flex space-x-4 text-sm text-muted-foreground'>
                 <div className='flex items-center'>
                   <CircleIcon className={`mr-1 h-3 w-3 text-sky-400`} />
-                  TypeScript
+                  Pending
                 </div>
                 <div className='flex items-center'>
-                  <StarIcon className='mr-1 h-3 w-3' />
-                  20k
+                  <IndianRupeeIcon className='mr-1 h-3 w-3' />1
                 </div>
                 <div>Updated {`5 seconds ago`}</div>
               </div>
