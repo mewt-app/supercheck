@@ -80,7 +80,11 @@ export function MailDisplay({ mail }: MailDisplayProps) {
   const [bankName, setBankName] = useState('');
   const [gstin, setGstin] = useState('');
   const [isCopied, setIsCopied] = useState(false);
-  const integrationScript = `<script src="https://feassetsnew.blob.core.windows.net/scripts/Integration.js"></script>`
+  const [beneId, setBeneId] = useState('')
+  const integrationScript = `<script> 
+  beneId = "${beneId}" 
+</script>
+<script src="https://feassetsnew.blob.core.windows.net/scripts/Integration.js"></script>`
   const validateStep = (step: string) => {
     // console.log(
     //   '// strat',
@@ -224,6 +228,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
       if (result) {
         console.log('Bussiness account got created ', result);
         Cookies.set('beneId', result.beneId);
+        setBeneId(result.beneId);
         Cookies.set('merchantId', result.merchantId);
         setCurrentState('AccountValidated');
       }
