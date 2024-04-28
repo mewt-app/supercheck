@@ -197,14 +197,14 @@ export function Mail({
               <MailList items={mails} />
             </TabsContent>
             <TabsContent value='unread' className='m-0'>
-              <MailList items={mails.filter(item => !item.read)} />
+              <MailList items={mails?.filter(item => !item.read)} />
             </TabsContent>
           </Tabs>
         </ResizablePanel>
         {/* <ResizableHandle withHandle /> */}
         <ResizablePanel defaultSize={defaultLayout[2]}>
           <MailDisplay
-            mail={mails.find(item => item.id === mail.selected) || null}
+            mail={mails?.find(item => item.id === mail.selected) || null}
           />
         </ResizablePanel>
       </ResizablePanelGroup>

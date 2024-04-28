@@ -1,23 +1,26 @@
 import { Mail } from '@/components/mail';
-import { accounts, mails ,mails2} from '@/data';
+import { accounts } from '@/data';
 import { cookies } from 'next/headers';
 import Image from 'next/image';
-import {
- fetchEmailsBene
-} from '@/app/lib/actions';
-import Cookies from 'js-cookie';
+import { fetchEmailsBene } from '../lib/actions';
 
-
-export default function Home() {
+const Home = async () => {
   const layout = cookies().get('react-resizable-panels:layout');
   const collapsed = cookies().get('react-resizable-panels:collapsed');
 
   const defaultLayout = layout ? JSON.parse(layout.value) : undefined;
   const defaultCollapsed = collapsed ? JSON.parse(collapsed.value) : undefined;
 
-  // const sessionId = cookies().get('sessionId');
+  const beneId = String(cookies().get('beneId'));
 
-  const beneId = Cookies.get('beneId');
+  var data: [];
+
+  await fetchEmailsBene(beneId).then(response => {
+    console.log('//from page ', response?.emails);
+    data = response?.emails;
+  });
+
+  // const beneId = Cookies.get('beneId');
 
   return (
     <>
@@ -40,7 +43,7 @@ export default function Home() {
       <div className='hidden flex-col md:flex'>
         <Mail
           accounts={accounts}
-          mails={mails}
+          mails={data}
           defaultLayout={defaultLayout}
           defaultCollapsed={defaultCollapsed}
           navCollapsedSize={4}
@@ -48,4 +51,6 @@ export default function Home() {
       </div>
     </>
   );
-}
+};
+
+export default Home;
