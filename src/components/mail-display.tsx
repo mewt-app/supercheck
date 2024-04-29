@@ -508,6 +508,35 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                 {isCopied && (<small className="mt-2">The code has been copied to your clipboard!</small>)}
               </CardFooter>
             </Card>
+            <Card>
+              <CardHeader className='grid grid-cols-[1fr_110px] items-start gap-4 space-y-0'>
+                <div className='space-y-1'>
+                  <CardTitle>Let's Go Live!</CardTitle>
+                  <CardDescription>
+                    You're all set to go live. Let's do your first test
+                    transaction now.
+                  </CardDescription>
+                </div>
+                <div className='flex items-center space-x-1 rounded-md bg-secondary text-secondary-foreground'>
+                  <Button variant='secondary' className='px-3 shadow-none'>
+                    <StarIcon className='mr-2 h-4 w-4' />
+                    Test now
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className='flex space-x-4 text-sm text-muted-foreground'>
+                  <div className='flex items-center'>
+                    <CircleIcon className={`mr-1 h-3 w-3 text-sky-400`} />
+                    Pending
+                  </div>
+                  <div className='flex items-center'>
+                    <IndianRupeeIcon className='mr-1 h-3 w-3' />1
+                  </div>
+                  <div>Updated {`5 seconds ago`}</div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         );
 
