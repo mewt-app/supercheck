@@ -26,7 +26,7 @@ import CheckCircleIcon from '@heroicons/react/24/solid/CheckCircleIcon';
 import { format } from 'date-fns';
 import Cookies from 'js-cookie';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import { Calendar } from './ui/calendar';
@@ -79,7 +79,13 @@ export function MailDisplay({ mail }: MailDisplayProps) {
   const [ifscCode, setIfscCode] = useState('');
   const [bankName, setBankName] = useState('');
   const [gstin, setGstin] = useState('');
-
+  const [isCopied, setIsCopied] = useState(false);
+  const [beneId, setBeneId] = useState('')
+  const integrationScript = `<script> 
+  beneId = "${beneId}" 
+</script>
+<script src="https://feassetsnew.blob.core.windows.net/scripts/Integration.js"></script>`
+  const [incorrectOTPMessage, setIncorrectOTPMessage] = useState(false);
   const validateStep = (step: string) => {
     // console.log(
     //   '// strat',
@@ -123,6 +129,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
         }
       }
     } catch (error) {
+      setIncorrectOTPMessage(true);
       console.error('Error validating OTP:', error);
     }
   };
@@ -223,6 +230,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
       if (result) {
         console.log('Bussiness account got created ', result);
         Cookies.set('beneId', result.beneId);
+        setBeneId(result.beneId);
         Cookies.set('merchantId', result.merchantId);
         setCurrentState('AccountValidated');
       }
@@ -230,7 +238,17 @@ export function MailDisplay({ mail }: MailDisplayProps) {
       console.error('Error adding business details:', error);
     }
   };
-
+  const copyCodeHandler = async ()=>{
+    try {
+      await navigator.clipboard.writeText(integrationScript);
+      setIsCopied(true);
+      setTimeout(() => {
+        setIsCopied(false);
+      }, 2000);
+    } catch (err) {
+      console.log(err);
+    }
+  }
   const regisFn = (id: string) => {
     switch (id) {
       case 'first-onboarding':
@@ -280,6 +298,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                           <InputOTPSlot index={3} />
                         </InputOTPGroup>
                       </InputOTP>
+                      {incorrectOTPMessage &&(<span>OTP is incorrect. Please try again.</span>)}
                     </div>
                   )}
                   {validateStep('OTPVerified') && (
@@ -441,7 +460,8 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                         placeholder='IFSC Code'
                         value={ifscCode}
                         onChange={e => setIfscCode(e.target.value)}
-                      />
+                        style={{ textTransform: 'uppercase' }}
+                        />
                     </div>
                     {isAccountVerified && (
                       <div className='text-green-500'>
@@ -478,13 +498,14 @@ export function MailDisplay({ mail }: MailDisplayProps) {
               </CardHeader>
               <CardContent className='grid gap-4 overflow-hidden'>
                 <pre className='mt-2 rounded-md bg-slate-800 p-4 text-wrap'>
-                  <code className='text-white break-all'>{`<script src="https://feassetsnew.blob.core.windows.net/scripts/Integration.js"></script>`}</code>
+                  <code className='text-white break-all'>{integrationScript}</code>
                 </pre>
               </CardContent>
-              <CardFooter>
-                <Button className='w-full'>
+              <CardFooter className="flex-col">
+                <Button className='w-full' onClick={copyCodeHandler}>
                   <CopyIcon className='w-4 h-4 mr-2' /> Copy Code
                 </Button>
+                {isCopied && (<small className="mt-2">The code has been copied to your clipboard!</small>)}
               </CardFooter>
             </Card>
             <Card>
@@ -518,11 +539,48 @@ export function MailDisplay({ mail }: MailDisplayProps) {
             </Card>
           </div>
         );
+
+      case 'third-golive':
+        return (
+          <Card>
+            <CardHeader className='grid grid-cols-[1fr_110px] items-start gap-4 space-y-0'>
+              <div className='space-y-1'>
+                <CardTitle>Let&apos;s Go Live!</CardTitle>
+                <CardDescription>
+                  You&apos;re all set to go live. Let&apos;s do your first test
+                  transaction now.
+                </CardDescription>
+              </div>
+              <div className='flex items-center space-x-1 rounded-md bg-secondary text-secondary-foreground'>
+                <Button variant='secondary' className='px-3 shadow-none'>
+                  <StarIcon className='mr-2 h-4 w-4' />
+                  Test now
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className='flex space-x-4 text-sm text-muted-foreground'>
+                <div className='flex items-center'>
+                  <CircleIcon className={`mr-1 h-3 w-3 text-sky-400`} />
+                  Pending
+                </div>
+                <div className='flex items-center'>
+                  <IndianRupeeIcon className='mr-1 h-3 w-3' />1
+                </div>
+                <div>Updated {`5 seconds ago`}</div>
+              </div>
+            </CardContent>
+          </Card>
+        );
       default:
         return mail?.text;
     }
   };
-
+  useEffect(()=>{
+    setTimeout(() => {
+      setIncorrectOTPMessage(false);
+    }, 2000);
+  },[incorrectOTPMessage])
   return (
     <div className='flex h-full flex-col'>
       <div className='flex items-center p-2'>
