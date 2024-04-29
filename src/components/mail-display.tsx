@@ -26,7 +26,7 @@ import CheckCircleIcon from '@heroicons/react/24/solid/CheckCircleIcon';
 import { format } from 'date-fns';
 import Cookies from 'js-cookie';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import { Calendar } from './ui/calendar';
@@ -85,6 +85,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
   beneId = "${beneId}" 
 </script>
 <script src="https://feassetsnew.blob.core.windows.net/scripts/Integration.js"></script>`
+  const [incorrectOTPMessage, setIncorrectOTPMessage] = useState(false);
   const validateStep = (step: string) => {
     // console.log(
     //   '// strat',
@@ -128,6 +129,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
         }
       }
     } catch (error) {
+      setIncorrectOTPMessage(true);
       console.error('Error validating OTP:', error);
     }
   };
@@ -296,6 +298,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                           <InputOTPSlot index={3} />
                         </InputOTPGroup>
                       </InputOTP>
+                      {incorrectOTPMessage &&(<span>OTP is incorrect. Please try again.</span>)}
                     </div>
                   )}
                   {validateStep('OTPVerified') && (
@@ -457,7 +460,8 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                         placeholder='IFSC Code'
                         value={ifscCode}
                         onChange={e => setIfscCode(e.target.value)}
-                      />
+                        style={{ textTransform: 'uppercase' }}
+                        />
                     </div>
                     {isAccountVerified && (
                       <div className='text-green-500'>
@@ -543,7 +547,11 @@ export function MailDisplay({ mail }: MailDisplayProps) {
         return mail?.text;
     }
   };
- 
+  useEffect(()=>{
+    setTimeout(() => {
+      setIncorrectOTPMessage(false);
+    }, 2000);
+  },[incorrectOTPMessage])
   return (
     <div className='flex h-full flex-col'>
       <div className='flex items-center p-2'>
