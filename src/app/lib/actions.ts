@@ -1,4 +1,6 @@
 import axios from 'axios';
+import Cookies from 'js-cookie';
+
 
 const baseURL = 'https://api.mewt.in/backend/v1/';
 
@@ -124,10 +126,16 @@ export const addBusinessDetails = (
     })
     .then(response => {
       console.log("response from business creation ",response);
-      return {
-        beneId: response.data.bene_id,
-        merchantId: response.data.merchant_id
-      };
+
+      Cookies.set('beneId', response.data.bene_id);
+      Cookies.set('merchantId', response.data.merchant_id);
+      // revalidatePath('/dashboard');
+      // redirect('/dashboard');
+      window.location.reload();
+      // return {
+      //   beneId: response.data.bene_id,
+      //   merchantId: response.data.merchant_id
+      // };
     })
     .catch(error => {
       console.error('Error adding business details:', error);
@@ -199,7 +207,10 @@ export const verifyBankAccount =  async(
 };
 
 export const fetchEmailsBene = (beneId:string) => {
+  unstable_noStore();
   console.log('came to fetch emails for bene',beneId)
+  
+
   return axios
     .get(baseURL + 'merchant/get-business-details-emails/'+ beneId, {
       headers: {

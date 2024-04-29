@@ -222,8 +222,6 @@ export function MailDisplay({ mail }: MailDisplayProps) {
       console.log('Business details added:', result);
       if (result) {
         console.log('Bussiness account got created ', result);
-        Cookies.set('beneId', result.beneId);
-        Cookies.set('merchantId', result.merchantId);
         setCurrentState('AccountValidated');
       }
     } catch (error) {

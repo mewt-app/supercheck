@@ -11,7 +11,7 @@ const Home = async () => {
   const defaultLayout = layout ? JSON.parse(layout.value) : undefined;
   const defaultCollapsed = collapsed ? JSON.parse(collapsed.value) : undefined;
 
-  const beneId = String(cookies().get('beneId'));
+  const beneId = String(cookies().get('beneId')?.value);
 
   var data: [];
 
