@@ -81,10 +81,10 @@ export function MailDisplay({ mail }: MailDisplayProps) {
   const [gstin, setGstin] = useState('');
   const [isCopied, setIsCopied] = useState(false);
   const [beneId, setBeneId] = useState('')
-  const integrationScript = `<script> 
-  beneId = "${beneId}" 
-</script>
-<script src="https://feassetsnew.blob.core.windows.net/scripts/Integration.js"></script>`
+//   const integrationScript = `<script> 
+//   beneId = "${beneId}" 
+// </script>
+// <script src="https://feassetsnew.blob.core.windows.net/scripts/Integration.js"></script>`
   const [incorrectOTPMessage, setIncorrectOTPMessage] = useState(false);
   const validateStep = (step: string) => {
     // console.log(
@@ -678,7 +678,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
               <Avatar>
                 <AvatarImage alt={mail.name} />
                 <AvatarFallback>
-                  {mail.name.replace(/[^\w\s]/gi, '')[0]}
+                  {mail.name.replace(/[^\w\s]/gi, '')}&apos;s Photo
                 </AvatarFallback>
               </Avatar>
               <div className='grid gap-1'>
