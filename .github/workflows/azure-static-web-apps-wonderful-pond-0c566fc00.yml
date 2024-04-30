@@ -9,7 +9,7 @@ on:
     branches:
       - main
 
-  jobs:
+jobs:
   check_node_version:
     runs-on: ubuntu-latest
     steps:
